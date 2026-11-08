@@ -260,7 +260,7 @@ beremiz-windows-portable: beremiz-windows-build
 
 beremiz-windows-installer: beremiz-windows-build $(src)/install.nsi 
 	export BVERSION=`python3 $(VERSIONPY)` ;\
-	rm -f beremiz-windows-installer_$${BVERSION}_amd64.zip ;\
+	rm -f beremiz-windows-installer_$${BVERSION}_amd64.exe ;\
 	sed -e "s/\$$BVERSION/$$BVERSION/g" $(src)/install.nsi > install.nsi
 	makensis install.nsi
 	touch $@

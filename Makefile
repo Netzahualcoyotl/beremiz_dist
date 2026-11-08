@@ -16,7 +16,9 @@ CPUS := `cat /proc/cpuinfo | grep -e 'processor\W*:\W*[[:digit:]]*' | nl -n ln |
 
 distfiles = $(src)/distfiles
 sfmirror = downloads
-tmp := $(shell rm -rf $${TMPDIR:-/tmp}/beremiz_dist_build_tmp.* ; mktemp -d -t beremiz_dist_build_tmp.XXXXXXXXXX)
+ifndef tmp
+tmp := $(shell mktemp -d -t beremiz_dist_build_tmp.XXXXXXXXXX)
+endif
 
 define get_src_http
 	dld=$(distfiles)/`echo $(2) | tr ' ()' '___'`;( ( [ -f $$dld ] || wget $(1)/$(2) -O $$dld ) && ( [ ! -f $$dld.md5 ] && (cd $(distfiles);md5sum `basename $$dld`) > $$dld.md5 || (cd $(distfiles);md5sum -c `basename $$dld.md5`) ) ) &&
@@ -34,7 +36,7 @@ tar_opts=--absolute-names --exclude=.* --exclude=.*.pyc --exclude=.*.swp --exclu
 
 define get_revisionid
 $(1)_revisionid ?=\
-		$(shell cd $(WORKSPACE)/$(1) && git clean -f -d -X -q && \
+		$(shell cd $(WORKSPACE)/$(1) && \
 			find . -type f -not -path '*/.*' -not -path '*/__pycache__/*' -print0 \
 			| LC_ALL=C sort -z | xargs -0 sha1sum | sha1sum | cut -d ' ' -f 1)
 endef
@@ -60,9 +62,16 @@ own_sources: $(foreach project,$(FROM_SOURCE_PROJECTS), sources/$(project)_src)
 
 sources/open62541_src: | sources
 	rm -rf sources/open62541
-	$(call get_src_http,https://github.com/open62541/open62541/archive/refs/tags,v1.3.7.tar.gz)\
+
+	# Version anterior: open62541 1.3.7
+	# $(call get_src_http,https://github.com/open62541/open62541/archive/refs/tags,v1.3.7.tar.gz)\
+	# tar -xzf $$dld
+	# mv open62541-1.3.7 sources/open62541
+
+	# Version actual: open62541 1.5.9
+	$(call get_src_http,https://github.com/Netzahualcoyotl/open62541/archive,fb3e17c448ca1a8dbed83ca776401b059b92da7d.tar.gz)\
 	tar -xzf $$dld
-	mv open62541-1.3.7 sources/open62541
+	mv open62541-fb3e17c448ca1a8dbed83ca776401b059b92da7d sources/open62541
 	touch $@
 
 all_sources: own_sources sources/open62541_src

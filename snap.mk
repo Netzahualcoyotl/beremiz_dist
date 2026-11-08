@@ -2,7 +2,7 @@
 
 main_target: snap_amd64 snap_arm64
 
-DIST_FROM_SOURCE_PROJECTS=canfestival Modbus
+DIST_FROM_SOURCE_PROJECTS=canfestival Modbus BACnet paho.mqtt.c frozen ethercat
 
 snap_sources: all_sources $(src)/snap/snapcraft.yaml | revisions.txt  # revisions.txt is regenated even if no changes
 	rm -rf sources/snap

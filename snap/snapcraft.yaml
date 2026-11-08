@@ -39,6 +39,21 @@ platforms:
   amd64:
   arm64:
 
+plugs:
+  ethercat-master:
+    interface: custom-device
+    custom-device: ethercat-master
+
+slots:
+  ethercat-master-slot:
+    interface: custom-device
+    custom-device: ethercat-master
+    devices:
+      - /dev/EtherCAT0
+    udev-tagging:
+      - kernel: EtherCAT0
+        subsystem: EtherCAT
+
 parts:
 
   beremiz:
@@ -47,6 +62,8 @@ parts:
     plugin: python
     source: beremiz
     source-type: local
+    after:
+      - ethercat
     # wxPython is provided at runtime by the staged python3-wxgtk4.0 deb, not
     # by pip:
     #   - requirements_snap.txt is requirements_pinned.txt with the wxpython
@@ -90,6 +107,7 @@ parts:
       - linux-libc-dev
       - libgcc-s1
       - python3-wxgtk4.0
+      - libssl-dev
     override-pull: |
       craftctl default
       craftctl set version="$(python3 $CRAFT_PART_SRC/version.py)"
@@ -195,6 +213,74 @@ parts:
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON && make
       cp -a $CRAFT_PART_BUILD $CRAFT_PART_INSTALL/canfestival
 
+  bacnet:
+    plugin: nil
+    source: BACnet
+    source-type: local
+    build-packages:
+      - build-essential
+    override-build: |
+      cd "$CRAFT_PART_SRC"
+      make CC="gcc -fPIC" library
+      mkdir -p "$CRAFT_PART_INSTALL/BACnet/lib"
+      mkdir -p "$CRAFT_PART_INSTALL/BACnet/ports"
+      test -f "$CRAFT_PART_SRC/lib/libbacnet.a"
+      cp "$CRAFT_PART_SRC/lib/libbacnet.a" "$CRAFT_PART_INSTALL/BACnet/lib/"
+      cp -a "$CRAFT_PART_SRC/include" "$CRAFT_PART_INSTALL/BACnet/"
+      cp -a "$CRAFT_PART_SRC/ports/linux" "$CRAFT_PART_INSTALL/BACnet/ports/"
+
+  paho:
+    plugin: nil
+    source: paho.mqtt.c
+    source-type: local
+    build-packages:
+      - build-essential
+      - cmake
+      - libssl-dev
+    override-build: |
+      cmake -S "$CRAFT_PART_SRC" -B "$CRAFT_PART_BUILD" \
+        -DPAHO_BUILD_STATIC=ON \
+        -DPAHO_BUILD_SHARED=OFF \
+        -DPAHO_WITH_SSL=ON \
+        -DPAHO_BUILD_SAMPLES=OFF \
+        -DPAHO_ENABLE_TESTING=OFF \
+        -DPAHO_ENABLE_CPACK=OFF
+      cmake --build "$CRAFT_PART_BUILD" --parallel
+      mkdir -p "$CRAFT_PART_INSTALL/paho.mqtt.c/build"
+      cp -a "$CRAFT_PART_BUILD/VersionInfo.h" "$CRAFT_PART_INSTALL/paho.mqtt.c/build/"
+      mkdir -p "$CRAFT_PART_INSTALL/paho.mqtt.c/build/src"
+      cp "$CRAFT_PART_BUILD/src/libpaho-mqtt3c.a" "$CRAFT_PART_INSTALL/paho.mqtt.c/build/src/"
+      cp "$CRAFT_PART_BUILD/src/libpaho-mqtt3cs.a" "$CRAFT_PART_INSTALL/paho.mqtt.c/build/src/"
+      cp -a "$CRAFT_PART_SRC/src" "$CRAFT_PART_INSTALL/paho.mqtt.c/"
+
+  frozen:
+    plugin: nil
+    source: frozen
+    source-type: local
+    override-build: |
+      mkdir -p "$CRAFT_PART_INSTALL/frozen"
+      cp "$CRAFT_PART_SRC/frozen.c" "$CRAFT_PART_INSTALL/frozen/"
+      cp "$CRAFT_PART_SRC/frozen.h" "$CRAFT_PART_INSTALL/frozen/"
+
+  ethercat:
+    # IgH EtherCAT userspace library and command-line tool.
+    # Kernel modules are provided by the host system.
+    plugin: nil
+    source: ethercat
+    source-type: local
+    build-packages:
+      - build-essential
+      - pkg-config
+    override-build: |
+      cd "$CRAFT_PART_SRC"
+      ./configure \
+        --prefix=/usr \
+        --disable-kernel \
+        --enable-userlib \
+        --enable-tool
+      make -j"$(nproc)"
+      make DESTDIR="$CRAFT_PART_INSTALL" install
+
   inkscape:
     # CLI only, used in SVGHMI build
     # GUI fails to launch couldn't find a way
@@ -222,6 +308,7 @@ apps:
       - home
       - removable-media
       - can-bus
+      - ethercat-master
 
   beremiz:
     # Beremiz Command Line interface
@@ -232,6 +319,7 @@ apps:
       - network
       - network-bind
       - can-bus
+      - ethercat-master
  
   runtime:
     # Standalone runtime
@@ -242,4 +330,5 @@ apps:
       - network
       - network-bind
       - can-bus
+      - ethercat-master
 

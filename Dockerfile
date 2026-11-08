@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Dockerfile to setup beremiz_public_dist build container
 
 FROM ubuntu:noble
@@ -25,7 +26,23 @@ RUN ./provision_noble64.sh
 # easy to remember 'build' alias to invoke main makefile
 ARG OWNDIRBASENAME=beremiz_public_dist
 ENV OWNDIRBASENAME ${OWNDIRBASENAME}
-RUN /bin/echo -e '#!/bin/bash\nmake -f /home/'$UNAME'/src/'$OWNDIRBASENAME'/Makefile $*' > /usr/local/bin/build
+RUN cat > /usr/local/bin/build <<'EOF'
+#!/bin/bash
+
+set -e
+
+TMP_BUILD_DIR=$(mktemp -d -t beremiz_dist_build_tmp.XXXXXXXXXX)
+
+cleanup() {
+    rm -rf -- "$TMP_BUILD_DIR"
+}
+
+trap cleanup EXIT
+
+make -f "/home/${UNAME}/src/${OWNDIRBASENAME}/Makefile" \
+    "tmp=$TMP_BUILD_DIR" "$@"
+EOF
+
 RUN chmod +x /usr/local/bin/build
 
 USER $UNAME

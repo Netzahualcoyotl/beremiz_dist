@@ -8,7 +8,13 @@ jobs:
   get_sources:
     runs-on: ubuntu-latest
 
-    env:
+#    env:
+        # Historical revisions:
+        # Previous official revisions and previously configured personal revisions
+        # are documented in the Git history.
+        #
+        # Current revisions are loaded from:
+        # beremiz_public_dist/sources.revisions
         # Versiones anteriores de Beremiz oficial
         # beremiz_revisionid: 7e99f6ee1d2abc7d936c1222758e928afdc817ea
         # matiec_revisionid: 79410c7660cf337ec7991a167e53ef141a26caf9
@@ -17,15 +23,15 @@ jobs:
         # open62541_revisionid: b8ac9e77f703e6ba5c012b886a8821037503daa6
 
         # Mis versiones publicadas
-        beremiz_revisionid: 96c1189fe88020ef44b8433437671886d5b21a26
-        matiec_revisionid: 3a41303bcb4e50403417bc39c63f88981d7d961e
-        canfestival_revisionid: c41b9cc7224398cc8f5a3b853f3743b395d02222
-        Modbus_revisionid: 74a5f6a2c3f9b61308a62fc58bbe10572d79a003
-        open62541_revisionid: fb3e17c448ca1a8dbed83ca776401b059b92da7d
-        BACnet_revisionid: 7c87c95f6270492a369631f5b58d6e1ac20ea6d3
-        paho_mqtt_c_revisionid: 4a939ddb01eea581a32fd6f0adcfee51b91d2601
-        frozen_revisionid: cfff12e9d3f20e9ea670ced1beb27be141fa3254
-        ethercat_revisionid: f4cbbea0ecfc4fb2d356e7911acad3914d4ac621
+#        beremiz_revisionid: 96c1189fe88020ef44b8433437671886d5b21a26
+#        matiec_revisionid: 3a41303bcb4e50403417bc39c63f88981d7d961e
+#        canfestival_revisionid: c41b9cc7224398cc8f5a3b853f3743b395d02222
+#        Modbus_revisionid: 74a5f6a2c3f9b61308a62fc58bbe10572d79a003
+#        open62541_revisionid: fb3e17c448ca1a8dbed83ca776401b059b92da7d
+#        BACnet_revisionid: 7c87c95f6270492a369631f5b58d6e1ac20ea6d3
+#        paho_mqtt_c_revisionid: 4a939ddb01eea581a32fd6f0adcfee51b91d2601
+#        frozen_revisionid: cfff12e9d3f20e9ea670ced1beb27be141fa3254
+#        ethercat_revisionid: f4cbbea0ecfc4fb2d356e7911acad3914d4ac621
 
 
     steps:
@@ -33,34 +39,47 @@ jobs:
       with:
           path: beremiz_public_dist
 
+    - name: Load source revisions
+      run: |
+        set -eu
+
+        while IFS='=' read -r name value; do
+          if [ -z "$name" ] || [ -z "$value" ]; then
+            echo "Invalid revision entry: $name=$value"
+            exit 1
+          fi
+
+          echo "$name=$value" >> "$GITHUB_ENV"
+        done < beremiz_public_dist/sources.revisions
+
     # repositories are directly checked out where Makefile expects them to be
     - uses: actions/checkout@v5
       with:
 #          repository: beremiz/beremiz
           repository: Netzahualcoyotl/beremiz
           ref: ${{ env.beremiz_revisionid }}
-          path: build/sources/beremiz
+          path: beremiz_public_dist/sources/beremiz
 
     - uses: actions/checkout@v5
       with:
 #          repository: beremiz/matiec
           repository: Netzahualcoyotl/matiec
           ref: ${{ env.matiec_revisionid }}
-          path: build/sources/matiec
+          path: beremiz_public_dist/sources/matiec
 
     - uses: actions/checkout@v5
       with:
 #          repository: beremiz/canfestival
           repository: Netzahualcoyotl/canfestival
           ref: ${{ env.canfestival_revisionid }}
-          path: build/sources/canfestival
+          path: beremiz_public_dist/sources/canfestival
 
     - uses: actions/checkout@v5
       with:
 #          repository: beremiz/Modbus
           repository: Netzahualcoyotl/Modbus
           ref: ${{ env.Modbus_revisionid }}
-          path: build/sources/Modbus
+          path: beremiz_public_dist/sources/Modbus
 
     - uses: actions/checkout@v5
       with:
@@ -70,52 +89,55 @@ jobs:
           # Repositorio personal, version 1.5.9
           repository: Netzahualcoyotl/open62541
           ref: ${{ env.open62541_revisionid }}
-          path: build/sources/open62541
+          path: beremiz_public_dist/sources/open62541
 
     - uses: actions/checkout@v5
       with:
           repository: Netzahualcoyotl/BACnet
           ref: ${{ env.BACnet_revisionid }}
-          path: build/sources/BACnet
+          path: beremiz_public_dist/sources/BACnet
 
     - uses: actions/checkout@v5
       with:
           repository: Netzahualcoyotl/paho-mqtt-c
           ref: ${{ env.paho_mqtt_c_revisionid }}
-          path: build/sources/paho.mqtt.c
+          path: beremiz_public_dist/sources/paho.mqtt.c
 
     - uses: actions/checkout@v5
       with:
           repository: Netzahualcoyotl/frozen
           ref: ${{ env.frozen_revisionid }}
-          path: build/sources/frozen
+          path: beremiz_public_dist/sources/frozen
 
     - uses: actions/checkout@v5
       with:
           repository: Netzahualcoyotl/ethercat
           ref: ${{ env.ethercat_revisionid }}
-          path: build/sources/ethercat
+          path: beremiz_public_dist/sources/ethercat
 
     - name: Keep Makefile satisfied and generate revisions.txt
       run: |
-        touch build/sources/beremiz_stamp
-        touch build/sources/matiec_stamp
-        touch build/sources/canfestival_stamp
-        touch build/sources/Modbus_stamp
-        touch build/sources/open62541_stamp
-        touch build/sources/BACnet_stamp
-        touch build/sources/paho.mqtt.c_stamp
-        touch build/sources/frozen_stamp
-        touch build/sources/beremiz_src
-        touch build/sources/matiec_src
-        touch build/sources/canfestival_src
-        touch build/sources/Modbus_src
-        touch build/sources/open62541_src
-        touch build/sources/BACnet_src
-        touch build/sources/paho.mqtt.c_src
-        touch build/sources/frozen_src
-        touch build/own_sources
-        cat >> build/revisions.txt <<EOF
+        touch beremiz_public_dist/sources/beremiz_stamp
+        touch beremiz_public_dist/sources/matiec_stamp
+        touch beremiz_public_dist/sources/canfestival_stamp
+        touch beremiz_public_dist/sources/Modbus_stamp
+        touch beremiz_public_dist/sources/open62541_stamp
+        touch beremiz_public_dist/sources/BACnet_stamp
+        touch beremiz_public_dist/sources/paho.mqtt.c_stamp
+        touch beremiz_public_dist/sources/frozen_stamp
+        touch beremiz_public_dist/sources/ethercat_stamp
+        touch beremiz_public_dist/sources/beremiz_src
+        touch beremiz_public_dist/sources/matiec_src
+        touch beremiz_public_dist/sources/canfestival_src
+        touch beremiz_public_dist/sources/Modbus_src
+        touch beremiz_public_dist/sources/open62541_src
+        touch beremiz_public_dist/sources/BACnet_src
+        touch beremiz_public_dist/sources/paho.mqtt.c_src
+        touch beremiz_public_dist/sources/frozen_src
+        touch beremiz_public_dist/sources/ethercat_src
+        mkdir -p beremiz_public_dist/build
+        touch beremiz_public_dist/build/own_sources
+        cat >> beremiz_public_dist/build/revisions.txt <<EOF
         beremiz_public_dist ${{ github.sha }}
         beremiz ${{ env.beremiz_revisionid }}
         matiec ${{ env.matiec_revisionid }}
@@ -125,6 +147,7 @@ jobs:
         BACnet ${{ env.BACnet_revisionid }}
         paho.mqtt.c ${{ env.paho_mqtt_c_revisionid }}
         frozen ${{ env.frozen_revisionid }}
+        ethercat ${{ env.ethercat_revisionid }}
         EOF
 
     - name: Tar files

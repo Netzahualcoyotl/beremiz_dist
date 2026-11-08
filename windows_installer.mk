@@ -103,8 +103,8 @@ $(MSYS_DIR)/.stamp: pacman/.stamp
 
 # filter-out all python-* packages already installed by pacman,
 # python packages not matching the python-* naming (wxPython)
-filtered_requirements.txt: $(MSYS_DIR)/.stamp sources/beremiz_src
-	grep sources/beremiz/requirements_pinned.txt -i -v \
+filtered_requirements.txt: $(MSYS_DIR)/.stamp $(SOURCES_DIR)/beremiz_src
+	grep $(SOURCES_DIR)/beremiz/requirements_pinned.txt -i -v \
 		`$(call pacman_call, -Qqs 'python-.*') | sed -e 's/$(MSYS_ENV)-python-/ -e /'` \
 		-e wxPython > filtered_requirements.txt
 
@@ -158,8 +158,8 @@ CROSS_COMPILE_LIBS_DIR=$(shell dirname $(shell $(CROSS_COMPILE)-gcc -print-libgc
 
 matiecdir = installer/matiec
 matiec: $(matiecdir)/.stamp
-$(matiecdir)/.stamp: sources/matiec_src | installer
-	cp -a sources/matiec $(tmp);\
+$(matiecdir)/.stamp: $(SOURCES_DIR)/matiec_src | installer
+	cp -a $(SOURCES_DIR)/matiec $(tmp);\
 	cd $(tmp)/matiec;\
 	autoreconf ;\
 	automake --add-missing ;\
@@ -182,9 +182,9 @@ CANFESTIVAL_WINDOWS_CAN_DRIVERS = virtual
 
 canfestivaldir = installer/canfestival
 canfestival: $(canfestivaldir)/.stamp
-$(canfestivaldir)/.stamp: sources/canfestival_src | installer
+$(canfestivaldir)/.stamp: $(SOURCES_DIR)/canfestival_src | installer
 	rm -rf $(canfestivaldir)
-	cp -a sources/canfestival $(canfestivaldir)
+	cp -a $(SOURCES_DIR)/canfestival $(canfestivaldir)
 	cd $(canfestivaldir);\
 	cmake -S . -B build -G "Unix Makefiles" \
 		-DCMAKE_SYSTEM_NAME=Windows \
@@ -202,9 +202,9 @@ $(canfestivaldir)/.stamp: sources/canfestival_src | installer
 beremizdir = installer/beremiz
 
 beremiz: $(beremizdir)/.stamp
-$(beremizdir)/.stamp:  sources/beremiz_src | installer
+$(beremizdir)/.stamp:  $(SOURCES_DIR)/beremiz_src | installer
 	rm -rf $(beremizdir);\
-	cp -a sources/beremiz $(beremizdir);
+	cp -a $(SOURCES_DIR)/beremiz $(beremizdir);
 	# populate __pycache__'s .pyc files
 	cd $(beremizdir) ;\
 		find . -name "*.py" | grep -v \

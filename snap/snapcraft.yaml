@@ -58,9 +58,9 @@ parts:
 
   beremiz:
     # Beremiz python source and dependencies, inc. native GCC
-    # source tree is expected to be just aside snap directory
+    # Source tree is located in the sources directory.
     plugin: python
-    source: beremiz
+    source: sources/beremiz
     source-type: local
     after:
       - ethercat
@@ -158,9 +158,9 @@ parts:
 
   matiec:
     # Matiec ST, SFC and IL compiler.
-    # source tree is expected to be just aside snap directory
+    # Source tree is located in the sources directory.
     plugin: nil
-    source: matiec
+    source: sources/matiec
     source-type: local
     build-packages:
       - build-essential
@@ -173,7 +173,7 @@ parts:
 
   modbus:
     plugin: nil
-    source: Modbus
+    source: sources/Modbus
     source-type: local
     build-packages:
       - build-essential
@@ -184,7 +184,7 @@ parts:
 
   open62541:
     plugin: nil
-    source: open62541
+    source: sources/open62541
     source-type: local
     build-packages:
       - build-essential
@@ -200,7 +200,7 @@ parts:
     # driver .so per entry: both the "virtual" (testing) and "socket"
     # (SocketCAN) drivers are shipped so either can be selected in the IDE.
     plugin: nil
-    source: canfestival
+    source: sources/canfestival
     source-type: local
     build-packages:
       - build-essential
@@ -215,7 +215,7 @@ parts:
 
   bacnet:
     plugin: nil
-    source: BACnet
+    source: sources/BACnet
     source-type: local
     build-packages:
       - build-essential
@@ -231,7 +231,7 @@ parts:
 
   paho:
     plugin: nil
-    source: paho.mqtt.c
+    source: sources/paho.mqtt.c
     source-type: local
     build-packages:
       - build-essential
@@ -255,7 +255,7 @@ parts:
 
   frozen:
     plugin: nil
-    source: frozen
+    source: sources/frozen
     source-type: local
     override-build: |
       mkdir -p "$CRAFT_PART_INSTALL/frozen"
@@ -266,7 +266,7 @@ parts:
     # IgH EtherCAT userspace library and command-line tool.
     # Kernel modules are provided by the host system.
     plugin: nil
-    source: ethercat
+    source: sources/ethercat
     source-type: local
     build-packages:
       - build-essential
@@ -290,7 +290,7 @@ parts:
   revisiontxt:
     # Makefile generated "revisions.txt"
     plugin: nil
-    source: .
+    source: build
     source-type: local
     override-build: |
       cp $CRAFT_PART_SRC/revisions.txt $CRAFT_PART_INSTALL

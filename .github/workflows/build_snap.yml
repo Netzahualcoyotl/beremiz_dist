@@ -32,21 +32,23 @@ jobs:
     - name: untar files
       run: tar -xvf sources.tar
 
-    - name: Move snap dir and revisions.txt in build/sources
-      run: |
-        mv beremiz_public_dist/snap build/sources
-        mv build/revisions.txt build/sources/revisions.txt
-
     - name: Invoke snapcraft build
       uses: snapcore/action-build@v1
       id: snapcraft
       with:
-        path: build/sources
+        path: beremiz_public_dist
+
+    - name: Move Snap package to build directory
+      env:
+        SNAP_FILE: ${{ steps.snapcraft.outputs.snap }}
+      run: |
+        mkdir -p beremiz_public_dist/build
+        mv "$SNAP_FILE" beremiz_public_dist/build/
 
     - name: Upload built artifact
       uses: actions/upload-artifact@v6
       with:
         name: snap-${{ matrix.arch }}
-        path: ${{ steps.snapcraft.outputs.snap }}
+        path: beremiz_public_dist/build/*.snap
 
 
